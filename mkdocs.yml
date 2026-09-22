@@ -1,0 +1,97 @@
+site_name: django-upload-stack
+site_description: >-
+  Stack Docker Compose com Django + Gunicorn atrás do Nginx, PostgreSQL e uploads
+  persistidos em volume nomeado.
+site_url: https://lucasetculbra.github.io/django-upload-stack/
+site_author: lucasetculbra
+
+repo_url: https://github.com/lucasetculbra/django-upload-stack
+repo_name: lucasetculbra/django-upload-stack
+edit_uri: edit/main/docs/
+
+copyright: Copyright &copy; 2026 lucasetculbra - MIT License
+
+theme:
+  name: material
+  language: pt-BR
+  icon:
+    repo: fontawesome/brands/github
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-night
+        name: Mudar para o tema escuro
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: Mudar para o tema claro
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.top
+    - navigation.sections
+    - toc.follow
+    - content.code.copy
+    - content.action.edit
+    - search.highlight
+    - search.suggest
+
+plugins:
+  - search:
+      lang: pt
+
+markdown_extensions:
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
+validation:
+  nav:
+    omitted_files: warn
+    not_found: warn
+  links:
+    not_found: warn
+    anchors: warn
+    absolute_links: warn
+    unrecognized_links: warn
+
+nav:
+  - Visão geral: index.md
+  - Arquitetura: arquitetura.md
+  - Instalação e execução: instalacao.md
+  - Docker Compose e Dockerfile: docker-compose.md
+  - Persistência e volumes: persistencia.md
+  - Variáveis de ambiente: variaveis.md
+  - CI/CD: ci-cd.md
+  - Troubleshooting: troubleshooting.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/lucasetculbra/django-upload-stack
+      name: Repositório no GitHub
