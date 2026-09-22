@@ -1,0 +1,19 @@
+[project]
+name = "django-upload-stack"
+version = "0.1.0"
+description = "Django file-upload app served by Gunicorn behind Nginx, with PostgreSQL and Docker Compose"
+requires-python = ">=3.10"
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+extend-exclude = ["**/migrations/**"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings_test"
+python_files = ["test_*.py"]
+testpaths = ["uploads/tests"]
+addopts = "-ra"

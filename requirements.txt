@@ -1,0 +1,4 @@
+# Runtime dependencies (pinned 2026-09-21)
+Django==5.2.17
+psycopg[binary]==3.3.6
+gunicorn==26.2.0
