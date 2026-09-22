@@ -1,0 +1,107 @@
+# Stack: Nginx (reverse proxy, the only published port) -> Gunicorn/Django -> PostgreSQL.
+# Named volumes keep uploads, static files and database data across `down` + `up`.
+name: django-upload-stack
+
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: dus-db
+    restart: unless-stopped
+    # Only the database credentials, never the application's SECRET_KEY.
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      # postgres:17 stores data in /var/lib/postgresql/data.
+      # For postgres:18+ this mount must become /var/lib/postgresql instead.
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      # $$ is escaped so the variable is expanded inside the container, not by Compose.
+      # Checking over TCP avoids the false positive from initdb's temporary unix-socket
+      # server during the very first boot.
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks: [backend]
+
+  web:
+    build:
+      context: .
+      target: runtime
+    image: ${WEB_IMAGE:-django-upload-stack-web:local}
+    container_name: dus-web
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      # Always talk to the db service, whatever the .env says (it is also used by CI,
+      # where POSTGRES_HOST points at localhost).
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+    volumes:
+      - media_data:/app/media
+      - static_data:/app/staticfiles
+    # No "ports": Gunicorn is only reachable through Nginx on the internal network.
+    expose:
+      - "8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      # An explicit Host header keeps the probe valid no matter how ALLOWED_HOSTS is set.
+      test:
+        - CMD
+        - python
+        - -c
+        - |
+          import sys, urllib.request
+          req = urllib.request.Request(
+              "http://127.0.0.1:8000/healthz/", headers={"Host": "localhost"}
+          )
+          sys.exit(0 if urllib.request.urlopen(req, timeout=5).status == 200 else 1)
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+      start_interval: 2s
+    networks: [backend]
+
+  nginx:
+    build:
+      context: ./nginx
+    image: django-upload-stack-nginx:local
+    container_name: dus-nginx
+    restart: unless-stopped
+    ports:
+      - "${NGINX_PORT:-8080}:80"
+    volumes:
+      # Read-only: Nginx only serves these, the app writes them.
+      - media_data:/vol/media:ro
+      - static_data:/vol/static:ro
+    depends_on:
+      # Also guarantees "web" mounts the media/static volumes first, so an empty volume
+      # is seeded with the app user's ownership instead of root's.
+      web:
+        condition: service_healthy
+    healthcheck:
+      # Goes through the proxy to Django, so "healthy" means the whole chain answers.
+      # Without this, `up --wait` returns while Nginx is still binding and the first
+      # request can fail with an empty reply.
+      test: ["CMD", "wget", "--quiet", "--spider", "http://127.0.0.1/healthz/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+      start_interval: 1s
+    networks: [backend]
+
+volumes:
+  postgres_data:
+  media_data:
+  static_data:
+
+networks:
+  backend:
+    driver: bridge

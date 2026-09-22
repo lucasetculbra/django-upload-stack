@@ -1,0 +1,15 @@
+# Overlay that swaps the web image for the "test" build stage (which also installs
+# pytest) and replaces the entrypoint so the suite runs against the real PostgreSQL
+# service instead of SQLite.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm web
+services:
+  web:
+    build:
+      target: test
+    image: django-upload-stack-web:test
+    entrypoint: []
+    command: ["pytest"]
+    restart: "no"
+    healthcheck:
+      disable: true
