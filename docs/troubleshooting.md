@@ -441,6 +441,49 @@ lento. Se aparecer `unable to write new index file` ou o build demorar muito:
 - ou pause a sincronização enquanto trabalha;
 - ou mova o repositório para fora do OneDrive (ex.: `C:\dev\django-upload-stack`).
 
+#### `failed to read dockerfile: invalid file request` {: #invalid-file-request }
+
+**Sintoma** — o build falha em um arquivo que existe e é legível:
+
+```text
+failed to solve: failed to read dockerfile: invalid file request Dockerfile
+# ou
+target web: failed to solve: invalid file request config/__init__.py
+```
+
+**Causa** — o **Files On-Demand** do OneDrive transformou o arquivo em um *placeholder*
+(atributo `ReparsePoint`): o conteúdo não está mais no disco, é baixado sob demanda. O
+Explorer e o Python conseguem lê-lo (isso dispara a hidratação), mas o BuildKit lê o
+contexto de build por outro caminho e falha.
+
+**Diagnóstico**
+
+```powershell
+Get-ChildItem -Recurse -File -Force |
+    Where-Object { $_.Attributes -band [IO.FileAttributes]::ReparsePoint } |
+    Select-Object FullName, Attributes
+```
+
+**Solução** — hidrate os arquivos reescrevendo-os (o conteúdo é idêntico, o Git não
+registra mudança):
+
+```powershell
+$skip = @('\.git\', '\.venv\', '\site\', '\__pycache__\')
+Get-ChildItem -Recurse -File -Force | Where-Object {
+    $full = $_.FullName
+    ($skip | Where-Object { $full -like "*$_*" }).Count -eq 0 -and
+    ($_.Attributes -band [IO.FileAttributes]::ReparsePoint)
+} | ForEach-Object {
+    $bytes = [IO.File]::ReadAllBytes($_.FullName)
+    Remove-Item $_.FullName -Force
+    [IO.File]::WriteAllBytes($_.FullName, $bytes)
+}
+```
+
+Depois confirme com `git status` (deve estar limpo) e refaça o build. Para evitar a
+reincidência, clique com o botão direito na pasta do projeto e escolha **"Sempre manter
+neste dispositivo"**, ou mantenha o repositório fora do OneDrive.
+
 ### Onde ficam os volumes
 
 No Docker Desktop os volumes vivem dentro da VM do WSL, **não** são navegáveis pelo
