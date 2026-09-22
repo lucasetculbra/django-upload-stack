@@ -1,5 +1,3 @@
-# syntax=docker/dockerfile:1
-
 # ---------------------------------------------------------------------------------------
 # Stage 1: build the virtualenv. Keeping pip and the build tooling out of the final image
 # makes it smaller and reduces its attack surface.
