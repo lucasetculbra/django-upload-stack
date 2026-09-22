@@ -4,7 +4,7 @@
 # Stage 1: build the virtualenv. Keeping pip and the build tooling out of the final image
 # makes it smaller and reduces its attack surface.
 # ---------------------------------------------------------------------------------------
-FROM python:3.13-slim AS builder
+FROM python:3.14-slim AS builder
 
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PIP_NO_CACHE_DIR=1 \
@@ -22,7 +22,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Stage 2: runtime image. Runs as a non-root user and only carries the virtualenv
 # plus the application code.
 # ---------------------------------------------------------------------------------------
-FROM python:3.13-slim AS runtime
+FROM python:3.14-slim AS runtime
 
 ENV PATH="/opt/venv/bin:$PATH" \
     PYTHONUNBUFFERED=1 \
