@@ -1,0 +1,27 @@
+{% load static %}<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}django-upload-stack{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'uploads/style.css' %}">
+</head>
+<body>
+  <main class="wrapper">
+    <header>
+      <h1>django-upload-stack</h1>
+      <p class="subtitle">
+        Django + Gunicorn atrás do Nginx, com PostgreSQL e uploads persistidos em volume.
+      </p>
+    </header>
+    {% block content %}{% endblock %}
+    <footer>
+      <a href="/healthz/">/healthz/</a>
+      <span>·</span>
+      <a href="https://github.com/lucasetculbra/django-upload-stack">código-fonte</a>
+      <span>·</span>
+      <a href="https://lucasetculbra.github.io/django-upload-stack/">documentação</a>
+    </footer>
+  </main>
+</body>
+</html>
