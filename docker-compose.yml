@@ -93,8 +93,10 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 15s
-      start_interval: 1s
+      # Generous start_period: the probe goes through to Django, so a slow first
+      # boot of the app must not mark the proxy unhealthy.
+      start_period: 45s
+      start_interval: 2s
     networks: [backend]
 
 volumes:
